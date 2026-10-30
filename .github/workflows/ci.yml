@@ -1,0 +1,22 @@
+name: CI
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Install tmux
+        run: sudo apt-get update && sudo apt-get install -y tmux
+      - run: sh -n install.sh uninstall.sh
+      - run: go vet ./...
+      - run: go test -race -count=1 ./...
+      - name: Build static binary
+        run: CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o bin/ck .
